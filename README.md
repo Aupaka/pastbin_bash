@@ -1,6 +1,6 @@
 # Pastebin Bash
 
-Script for send file to pastebin
+Script to send file to pastebin
 
 ## Requirements
 
