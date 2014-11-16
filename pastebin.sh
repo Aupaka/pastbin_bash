@@ -31,6 +31,11 @@ username=""
 password=""
 api_key=""
 list=""
+
+declare -A extensions_name
+
+extensions_name=( ["py"]="python" ["php"]="php" ["sh"]="bash" ["c"]="c" ["cpp"]="cpp")
+
 while getopts "f:p:t:lah" arg; do
     case $arg in
         f)
@@ -74,20 +79,46 @@ fi
 
 if [[ ! -n "$anonymous" ]]; then
     echo "get user api key"
-    uk=$(curl -d api_dev_key="$api_key" -d api_user_name="$username" -d api_user_password="$password" http://pastebin.com/api/api_login.php)
+    #uk=$(curl -d api_dev_key="$api_key" -d api_user_name="$username" -d api_user_password="$password" http://pastebin.com/api/api_login.php)
 fi
 
 if [[ -n "$list" ]];
 then
-    curl -d api_dev_key="$api_key" -d api_user_key="$uk" -d api_user_name="$username" -d api_user_password="$password" -d api_option="list" http://pastebin.com/api/api_post.php
+    curl -s -d api_dev_key="$api_key" -d api_user_key="$uk" -d api_user_name="$username" -d api_user_password="$password" -d api_option="list" http://pastebin.com/api/api_post.php
 else
     # if [ -z "${s}" ] || [ -z "${p}" ];
-    if [[  ! -n "$pname" || ! -n "$format" || ! -n "$file" ]]; then
+    if [[ ! -n "$file" ]]; then
         howto
         exit
     fi
+    if [[ ! -n "$pname" ]]; then
+        pname=$(basename $file)
+    fi
+
+    extension=${pname##*.}
+
+    for key in ${!extensions_name[@]}; do
+        if [[ "${key}" == "${extension}" ]]; then
+            format=${extensions_name[${key}]}
+        fi
+    done
+
+    if [[ ! -n "$format" ]]; then
+        echo "Can't get file format. Please specify it with -t option"
+        exit
+    fi
+
+    if [[ ! -f $file ]]; then
+        echo "$file: This file does not exists."
+        exit
+    fi
     pc=$(cat $file)
-    res=$(curl -d api_dev_key="$api_key" -d api_user_key="$uk" -d api_user_name="$username" -d api_user_password="$password" -d api_option="paste" -d api_paste_code="$pc" -d api_paste_name="$pname" -d api_paste_format="$format" http://pastebin.com/api/api_post.php)
+
+    if [[ ! -n "$pc" ]]; then
+        exit
+    fi
+
+    #res=$(curl -s -d api_dev_key="$api_key" -d api_user_key="$uk" -d api_user_name="$username" -d api_user_password="$password" -d api_option="paste" -d api_paste_code="$pc" -d api_paste_name="$pname" -d api_paste_format="$format" http://pastebin.com/api/api_post.php)
     echo ""
     if [ "$res" == "Bad API request, invalid api_paste_format" ]; then
         echo "The -t option is invalid"
