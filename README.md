@@ -31,7 +31,7 @@ All parameters are required.
 ### Other parameters:
 
 - a: launch at anonymous
-- a: list all pastebin
+- l: list all pastebin
 - h: help
 
 ## Example
